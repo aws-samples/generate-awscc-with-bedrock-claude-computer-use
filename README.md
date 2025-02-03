@@ -4,7 +4,7 @@ This solution will generate example Terraform configuration for the specified AW
 
 The implementation of Anthropic Computer Use is adopted from [Anthropic Quickstarts](https://github.com/anthropics/anthropic-quickstarts/tree/main/computer-use-demo) - MIT License.
 
-![](./img/awscc_tool_use.svg)
+![](./img/awscc_tool_use.png)
 
 Features:
 
@@ -39,7 +39,7 @@ This will create the required infrastructure in your AWS account.
 
 ## Usage
 
-Invoke the Step Function with a JSON payload containing target resources:
+Invoke the Step Functions with a JSON payload containing target resources:
 
 ```json
 {
@@ -55,11 +55,11 @@ Invoke the Step Function with a JSON payload containing target resources:
 }
 ```
 
-You can invoke the Step Function via the AWS Console, AWS SDK, or AWS CLI
+You can invoke the Step Functions via the AWS Console, AWS SDK, or AWS CLI
 
-* [Step Function Start Execution Console Instructions](https://docs.aws.amazon.com/step-functions/latest/dg/getting-started.html)
-* [Step Function `StartExecution` AWS SDK Reference](https://docs.aws.amazon.com/step-functions/latest/apireference/API_StartExecution.html)
-* [Step Function `start-execution` AWS CLI Reference](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/stepfunctions/start-execution.html) 
+* [Step Functions Start Execution Console Instructions](https://docs.aws.amazon.com/step-functions/latest/dg/getting-started.html)
+* [Step Functions `StartExecution` AWS SDK Reference](https://docs.aws.amazon.com/step-functions/latest/apireference/API_StartExecution.html)
+* [Step Functions `start-execution` AWS CLI Reference](https://awscli.amazonaws.com/v2/documentation/api/latest/reference/stepfunctions/start-execution.html) 
 
 
 ### AWS Step Functions Orchestration Script
