@@ -67,7 +67,7 @@ You can invoke the Step Functions via the AWS Console, AWS SDK, or AWS CLI
 The repo also includes a script which orchestrates AWS Step Functions execution and manages related S3 bucket operations. It starts a Step Function execution using input from resources.json, monitors the execution status, and downloads resulting artifacts from S3.The default region is set to `us-west-2` which you should update to the region used in your provider configuration.
 
 ```bash
-./start_orchestration.sh <state_machine_arn> <s3_bucket>
+./start_orchestration.sh <state_machine_arn> <artifact_s3_bucket_name>
 ```
 
 ## Security Consideration

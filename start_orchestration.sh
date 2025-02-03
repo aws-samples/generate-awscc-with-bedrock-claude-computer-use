@@ -42,7 +42,7 @@ NC='\033[0m' # No Color
 # Check if required arguments are provided
 if [ $# -ne 2 ]; then
     echo "Usage: $0 <state_machine_arn> <s3_bucket>"
-    echo "Example: $0 arn:aws:states:region:account:stateMachine:name my-bucket-name"
+    echo "Example: $0 arn:aws:states:region:account:stateMachine:name my-artifact-bucket-name"
     exit 1
 fi
 
