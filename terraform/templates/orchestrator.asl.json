@@ -1,0 +1,388 @@
+{
+  "QueryLanguage": "JSONata",
+  "Comment": "Orchestrator to generate resource example for AWSCC Terraform provider",
+  "StartAt": "Inference",
+  "States": {
+    "Inference": {
+      "Type": "Map",
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "INPUT",
+        "States": {
+          "INPUT": {
+            "Type": "Pass",
+            "Next": "CREATE"
+          },
+          "CREATE": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Output": "{% $states.result.Payload %}",
+            "Arguments": {
+              "FunctionName": "${resource_lambda_create}:$LATEST",
+              "Payload": {
+                "prompt_type": "CREATE",
+                "target_resource": "{% $states.input %}"
+              }
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 60,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "Next": "Create Status",
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "Next": "Lambda Exception Pass",
+                "Comment": "Create_Exception",
+                "Output": {
+                  "prompt_type": "CREATE",
+                  "status": "TIMEOUT",
+                  "reason": "{% $states.errorOutput %}",
+                  "target_resource": "{% $states.input %}"
+                }
+              }
+            ]
+          },
+          "Lambda Exception Pass": {
+            "Type": "Pass",
+            "Next": "Catch Exception"
+          },
+          "Catch Exception": {
+            "Type": "Choice",
+            "Choices": [
+              {
+                "Next": "CLEAN_UP",
+                "Condition": "{% $states.input.status = 'TIMEOUT' and $states.input.prompt_type in [\"CREATE\", \"DELETE\", \"REVIEW\"] %}",
+                "Comment": "Cleanup"
+              }
+            ],
+            "Default": "Skip CLEAN_UP"
+          },
+          "Skip CLEAN_UP": {
+            "Type": "Pass",
+            "Next": "Success",
+            "Output": {
+              "target_output": false,
+              "target_resource": "{% $states.input.target_resource %}"
+            }
+          },
+          "CLEAN_UP": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Output": {
+              "target_output": false,
+              "target_resource": "{% $states.input.target_resource %}"
+            },
+            "Arguments": {
+              "FunctionName": "${resource_lambda_delete}:$LATEST",
+              "Payload": {
+                "prompt_type": "DELETE",
+                "target_resource": "{% $states.input.target_resource %}"
+              }
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 1,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "Next": "Success"
+          },
+          "Create Status": {
+            "Type": "Choice",
+            "Choices": [
+              {
+                "Next": "DELETE",
+                "Condition": "{% $states.input.status = 'SUCCESS' %}",
+                "Comment": "SUCCESS"
+              }
+            ],
+            "Default": "Worker Failed Pass"
+          },
+          "Worker Failed Pass": {
+            "Type": "Pass",
+            "Next": "Success",
+            "Output": {
+              "target_output": false,
+              "target_resource": "{% $states.input.target_resource %}"
+            }
+          },
+          "Delete Status": {
+            "Type": "Choice",
+            "Choices": [
+              {
+                "Next": "REVIEW",
+                "Condition": "{% $states.input.status = 'SUCCESS' %}",
+                "Comment": "Success"
+              }
+            ],
+            "Default": "Worker Failed Pass"
+          },
+          "REVIEW": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Output": "{% $states.result.Payload %}",
+            "Arguments": {
+              "FunctionName": "${resource_lambda_review}:$LATEST",
+              "Payload": {
+                "prompt_type": "REVIEW",
+                "target_resource": "{% $states.input.target_resource %}"
+              }
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 60,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "Next": "Review Status",
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "Next": "Lambda Exception Pass",
+                "Output": {
+                  "prompt_type": "REVIEW",
+                  "status": "TIMEOUT",
+                  "reason": "{% $states.errorOutput %}",
+                  "target_resource": "{% $states.input %}"
+                }
+              }
+            ]
+          },
+          "Review Status": {
+            "Type": "Choice",
+            "Choices": [
+              {
+                "Next": "CLEANER",
+                "Condition": "{% $states.input.status = 'SUCCESS' %}",
+                "Comment": "Success"
+              }
+            ],
+            "Default": "Worker Failed Pass"
+          },
+          "CLEANER": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Output": "{% $states.result.Payload %}",
+            "Arguments": {
+              "FunctionName": "${resource_lambda_cleaner}:$LATEST",
+              "Payload": {
+                "prompt_type": "CLEANER",
+                "target_resource": "{% $states.input.target_resource %}"
+              }
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 60,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "Next": "Cleaner Status",
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "Next": "Lambda Exception Pass",
+                "Output": {
+                  "prompt_type": "CLEANER",
+                  "status": "TIMEOUT",
+                  "reason": "{% $states.errorOutput %}",
+                  "target_resource": "{% $states.input %}"
+                }
+              }
+            ]
+          },
+          "Cleaner Status": {
+            "Type": "Choice",
+            "Choices": [
+              {
+                "Next": "SUMMARY",
+                "Condition": "{% $states.input.status = 'SUCCESS' %}",
+                "Comment": "Success"
+              }
+            ],
+            "Default": "Worker Failed Pass"
+          },
+          "SUMMARY": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Output": "{% $states.result.Payload %}",
+            "Arguments": {
+              "FunctionName": "${resource_lambda_summary}:$LATEST",
+              "Payload": {
+                "prompt_type": "SUMMARY",
+                "target_resource": "{% $states.input.target_resource %}"
+              }
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 60,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "Next": "Choice",
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "Next": "Lambda Exception Pass",
+                "Output": {
+                  "prompt_type": "SUMMARY",
+                  "status": "TIMEOUT",
+                  "reason": "{% $states.errorOutput %}",
+                  "target_resource": "{% $states.input %}"
+                }
+              }
+            ]
+          },
+          "Choice": {
+            "Type": "Choice",
+            "Choices": [
+              {
+                "Condition": "{% $states.input.status = 'SUCCESS' %}",
+                "Comment": "Success",
+                "Next": "Worker Success Pass"
+              }
+            ],
+            "Default": "Worker Failed Pass"
+          },
+          "Worker Success Pass": {
+            "Type": "Pass",
+            "Next": "Success",
+            "Output": {
+              "target_output": "{% $states.input.target_resource %}",
+              "target_resource": "{% $states.input.target_resource %}"
+            }
+          },
+          "Success": {
+            "Type": "Succeed"
+          },
+          "DELETE": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Output": "{% $states.result.Payload %}",
+            "Arguments": {
+              "FunctionName": "${resource_lambda_delete}:$LATEST",
+              "Payload": {
+                "prompt_type": "DELETE",
+                "target_resource": "{% $states.input.target_resource %}"
+              }
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 60,
+                "MaxAttempts": 3,
+                "BackoffRate": 2,
+                "JitterStrategy": "FULL"
+              }
+            ],
+            "Next": "Delete Status",
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "Next": "Lambda Exception Pass",
+                "Output": {
+                  "prompt_type": "DELETE",
+                  "status": "TIMEOUT",
+                  "reason": "{% $states.errorOutput %}",
+                  "target_resource": "{% $states.input %}"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "MaxConcurrency": 1,
+      "Items": "{% $states.input.target_resources %}",
+      "Next": "ARTIFACT",
+      "Output": {
+        "target_outputs": "{% $states.result[].target_output %}"
+      }
+    },
+    "ARTIFACT": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Output": "{% $states.result.Payload %}",
+      "Arguments": {
+        "FunctionName": "${resource_lambda_artifact}:$LATEST",
+        "Payload": {
+          "prompt_type": "COPY",
+          "target_resources": "{% $states.input.target_outputs %}"
+        }
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException",
+            "Lambda.SdkClientException",
+            "Lambda.TooManyRequestsException"
+          ],
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "BackoffRate": 2,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "End": true
+    }
+  }
+}
