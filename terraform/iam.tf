@@ -47,7 +47,7 @@ resource "aws_iam_role_policy_attachment" "delete_administrator" {
 ############################################################################################################
 
 resource "awscc_iam_role" "review_resource" {
-  role_name                   = local.lambda.delete_resource.name
+  role_name                   = local.lambda.review_resource.name
   assume_role_policy_document = jsonencode(jsondecode(data.aws_iam_policy_document.lambda_assume_role.json))
   tags                        = local.combined_tags_awscc
 }
