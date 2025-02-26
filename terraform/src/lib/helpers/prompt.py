@@ -89,7 +89,7 @@ Your tasks in sequential order:
 * Fix any errors as needed.
 * Run `terraform destroy --auto-approve` to clean up.
 * Run `terraform fmt` to lint the config.
-* Remove any unused datasources around region or account id from the terraform configuration.
+* Remove any unused data sources for region or account id from the Terraform configuration.
 
 Finally, add a marker file called `reviewed.marker` in the working directory to mark that review is completed.
 """

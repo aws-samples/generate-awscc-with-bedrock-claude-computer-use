@@ -52,12 +52,10 @@ tool_logger_level = LoggerToolLevel[os.environ.get('LOG_LEVEL', 'L1')] # log lev
 class APIProvider(StrEnum):
     ANTHROPIC = "anthropic"
     BEDROCK = "bedrock"
-    VERTEX = "vertex"
 
 PROVIDER_TO_DEFAULT_MODEL_NAME: dict[APIProvider, str] = {
-    APIProvider.ANTHROPIC: "claude-3-5-sonnet-20241022",
-    APIProvider.BEDROCK: "anthropic.claude-3-5-sonnet-20241022-v2:0",
-    APIProvider.VERTEX: "claude-3-5-sonnet-v2@20241022",
+    APIProvider.ANTHROPIC: "claude-3-7-sonnet-20250219",
+    APIProvider.BEDROCK: "anthropic.claude-3-7-sonnet-20250219-v1:0"
 }
 
 class Sender(StrEnum):
