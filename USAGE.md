@@ -89,7 +89,7 @@ This will automatically create:
 - S3 bucket for storing results
 - DynamoDB table for pipeline state
 - IAM role with necessary permissions
-- Update `config.py` with resource names
+- Export environment variables to your current shell
 
 ### Manual Infrastructure Setup
 
@@ -114,25 +114,14 @@ Your AWS user/role needs permissions for:
 
 ## Configuration
 
-The pipeline uses [`config.py`](config.py) with these defaults:
+The pipeline uses environment variables set by the infrastructure setup script:
 
-```python
-AWS_REGION = "us-west-2"
-AWS_PROFILE = "default"
-S3_BUCKET = "tango-project-docs"
-DYNAMODB_TABLE = "tango-pipeline-state"
-DEFAULT_PROVIDER_VERSION = "1.53.0"
-```
+- **AWS_REGION**: Target AWS region
+- **S3_BUCKET**: S3 bucket for storing results  
+- **DYNAMODB_TABLE**: DynamoDB table for tracking progress
+- **IAM_ROLE_ARN**: IAM role for pipeline execution
 
-You can either:
-1. **Edit [`config.py`](config.py) directly** for permanent changes
-2. **Override via environment variables** for temporary changes:
-
-```bash
-export AWS_REGION="eu-west-1"
-export S3_BUCKET="my-custom-bucket"
-export DEFAULT_PROVIDER_VERSION="1.48.0"
-```
+After running `./infrastructure/setup.sh`, these variables are automatically exported to your shell session.
 
 ## Usage
 

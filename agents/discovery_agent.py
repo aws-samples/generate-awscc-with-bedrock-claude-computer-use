@@ -10,15 +10,18 @@ import boto3
 import requests
 from strands import tool
 from typing import Dict, List, Set
-import config
+
+# Constants
+DEFAULT_PROVIDER_VERSION = "1.53.0"
+DYNAMODB_TABLE = os.environ.get('DYNAMODB_TABLE')
 
 def get_processed_resources() -> Set[str]:
     """Get list of processed resources from DynamoDB."""
     try:
-        dynamodb = boto3.client('dynamodb', region_name=config.AWS_REGION)
+        dynamodb = boto3.client('dynamodb')
         
         response = dynamodb.scan(
-            TableName=config.DYNAMODB_TABLE,
+            TableName=DYNAMODB_TABLE,
             ProjectionExpression='resource_name'
         )
         

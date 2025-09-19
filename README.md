@@ -33,7 +33,6 @@ tango-multi-agent-pipeline/
 │   ├── storage_agent.py            # DynamoDB and S3 operations
 │   ├── cleanup_agent.py            # Cleans up orphaned AWS resources
 │   └── orchestrator_agent.py       # Coordinates all agents
-├── config.py                       # Configuration settings (AWS region, S3 bucket, DynamoDB table)
 ├── examples/
 │   └── resources/                  # 50 Successfully validated AWSCC Terraform configs
 ├── failed/
@@ -51,14 +50,14 @@ tango-multi-agent-pipeline/
 
 ## Configuration
 
-Pipeline settings are configured in `config.py` using environment variables with defaults:
+Pipeline settings are configured using environment variables:
 
-- **AWS_REGION**: Target AWS region (default: us-west-2)
-- **S3_BUCKET**: S3 bucket for storing results (default: tango-project-docs)  
-- **DYNAMODB_TABLE**: DynamoDB table for tracking progress (default: tango-pipeline-state)
-- **DEFAULT_PROVIDER_VERSION**: AWSCC provider version (default: 1.53.0)
+- **AWS_REGION**: Target AWS region (set by setup script)
+- **S3_BUCKET**: S3 bucket for storing results (created by setup script)  
+- **DYNAMODB_TABLE**: DynamoDB table for tracking progress (created by setup script)
+- **IAM_ROLE_ARN**: IAM role for pipeline execution (created by setup script)
 
-You can override defaults by setting environment variables or editing `config.py` directly.
+Run `./infrastructure/setup.sh` to automatically create resources and set environment variables.
 
 ## Agents
 

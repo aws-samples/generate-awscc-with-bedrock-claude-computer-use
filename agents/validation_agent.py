@@ -7,7 +7,10 @@ from strands import Agent, tool
 from strands_tools import python_repl, shell, use_aws
 from datetime import datetime
 import json
-import config
+import os
+
+# Constants
+S3_BUCKET = os.environ.get('S3_BUCKET')
 
 VALIDATION_SYSTEM_PROMPT = """
 You are an independent validation agent that reviews terraform agent's work.
@@ -24,7 +27,7 @@ YOUR TASK:
 5. Return simple success/failed status
 
 REGION CONFIGURATION:
-- S3: {config.AWS_REGION} region ({config.S3_BUCKET} bucket)
+- S3: {config.AWS_REGION} region ({S3_BUCKET} bucket)
 - AWS operations: {config.AWS_REGION} region
 
 CRITICAL REQUIREMENTS:
@@ -119,7 +122,7 @@ def validation_agent(terraform_code_and_resource: str) -> str:
         system_prompt = VALIDATION_SYSTEM_PROMPT.replace(
             "{config.AWS_REGION}", config.AWS_REGION
         ).replace(
-            "{config.S3_BUCKET}", config.S3_BUCKET
+            "{S3_BUCKET}", S3_BUCKET
         )
         
         agent = Agent(
