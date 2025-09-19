@@ -9,7 +9,9 @@ import boto3
 from datetime import datetime
 from strands import Agent, tool
 from strands_tools import python_repl, use_aws
-import config
+
+# Constants
+S3_BUCKET = os.environ.get('S3_BUCKET')
 
 def create_template_replacement_tool():
     """Create a programmatic template replacement tool"""
@@ -30,7 +32,7 @@ def create_template_replacement_tool():
         try:
             s3_client = boto3.client('s3')
             response = s3_client.get_object(
-                Bucket=config.S3_BUCKET,
+                Bucket=S3_BUCKET,
                 Key='templates/resources/generic_resource.md.tmpl'
             )
             template_content = response['Body'].read().decode('utf-8')
@@ -75,7 +77,7 @@ YOUR TASKS:
 
 REGION CONFIGURATION:
 - DynamoDB: {config.AWS_REGION} region ({config.DYNAMODB_TABLE} table)
-- S3: {config.AWS_REGION} region ({config.S3_BUCKET} bucket)
+- S3: {config.AWS_REGION} region ({S3_BUCKET} bucket)
 
 CRITICAL: Always specify region="{config.AWS_REGION}" in ALL use_aws tool calls.
 
@@ -94,7 +96,7 @@ WORKFLOW:
 2. Extract validation results and S3 analysis link from input
 3. Clean up old entries: Query DynamoDB for existing entries with same resource_name and delete them
 4. Use the template_replacer tool to create the resource-specific template:
-   - Reads generic template from S3: s3://{config.S3_BUCKET}/templates/resources/generic_resource.md.tmpl
+   - Reads generic template from S3: s3://{S3_BUCKET}/templates/resources/generic_resource.md.tmpl
    - Pass the resource_name, service_name, a brief description, and a descriptive heading
    - The tool will handle reading the generic template and doing exact replacements
    - It will validate the output format automatically
@@ -146,7 +148,7 @@ def storage_agent(storage_request: str) -> str:
         system_prompt = STORAGE_SYSTEM_PROMPT.replace(
             "{config.AWS_REGION}", config.AWS_REGION
         ).replace(
-            "{config.S3_BUCKET}", config.S3_BUCKET
+            "{S3_BUCKET}", S3_BUCKET
         ).replace(
             "{config.DYNAMODB_TABLE}", config.DYNAMODB_TABLE
         )

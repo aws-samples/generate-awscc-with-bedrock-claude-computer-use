@@ -4,8 +4,8 @@
 
 The idea behind this project is to automate the research of new AWS resources in AWSCC provider through AWS documentations, and use the knowledge to generate, test and validate Terraform configurations, before publishing it to Terraform registry. You can find example of LLM-generated code example such as  [awscc_apigateway_authorizer](https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/apigateway_authorizer), [awscc_appconfig_configuration_profile](https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/appconfig_configuration_profile), [awscc_m2_environment](https://registry.terraform.io/providers/hashicorp/awscc/latest/docs/resources/m2_environment) and more.
 
-There is two solution in this repository:
-* branch [tango](https://github.com/aws-samples/generate-awscc-with-bedrock-claude-computer-use/tree/tango) is the new solution using agentic framework StrandsAgent **recommended**. 
+There are two solutions in this repository:
+* branch [tango](https://github.com/aws-samples/generate-awscc-with-bedrock-claude-computer-use/tree/tango) is the new solution using the agentic framework StrandsAgent **recommended**. 
 * branch [non-agent](https://github.com/aws-samples/generate-awscc-with-bedrock-claude-computer-use/tree/non-agent) is the original implementation using Anthropic Computer Use + Amazon Bedrock, orchestrated using state-machine.
 
 ## Overview
@@ -33,7 +33,6 @@ tango-multi-agent-pipeline/
 │   ├── storage_agent.py            # DynamoDB and S3 operations
 │   ├── cleanup_agent.py            # Cleans up orphaned AWS resources
 │   └── orchestrator_agent.py       # Coordinates all agents
-├── config.py                       # Configuration settings (AWS region, S3 bucket, DynamoDB table)
 ├── examples/
 │   └── resources/                  # 50 Successfully validated AWSCC Terraform configs
 ├── failed/
@@ -51,14 +50,14 @@ tango-multi-agent-pipeline/
 
 ## Configuration
 
-Pipeline settings are configured in `config.py` using environment variables with defaults:
+Pipeline settings are configured using environment variables:
 
-- **AWS_REGION**: Target AWS region (default: us-west-2)
-- **S3_BUCKET**: S3 bucket for storing results (default: tango-project-docs)  
-- **DYNAMODB_TABLE**: DynamoDB table for tracking progress (default: tango-pipeline-state)
-- **DEFAULT_PROVIDER_VERSION**: AWSCC provider version (default: 1.53.0)
+- **AWS_REGION**: Target AWS region (set by setup script)
+- **S3_BUCKET**: S3 bucket for storing results (created by setup script)  
+- **DYNAMODB_TABLE**: DynamoDB table for tracking progress (created by setup script)
+- **IAM_ROLE_ARN**: IAM role for pipeline execution (created by setup script)
 
-You can override defaults by setting environment variables or editing `config.py` directly.
+Run `./infrastructure/setup.sh` to automatically create resources and set environment variables.
 
 ## Agents
 
